@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>REWY RoofScan – Instant Roof Area Measurement Report</title>
+  <meta name="description" content="Enter any address, get AI-powered roof area measurement for every section including detached garage & storage. Pay once, receive professional PDF by email." />
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- jsPDF for real PDF generation (client-side) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <style>
+    /* =====================================================
+       REWY RoofScan – Complete Styles
+       ===================================================== */
+    :root {
+      --primary: #0f766e;        /* Teal */
+      --primary-dark: #0d5c56;
+      --primary-light: #14b8a6;
+      --accent: #f59e0b;         /* Amber for CTAs */
+      --accent-hover: #d97706;
+      --bg: #f8fafc;
+      --card: #ffffff;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --success: #10b981;
+      --danger: #ef4444;
+      --radius: 12px;
+      --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+      --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.08), 0 4px 6px -4px rgb(0 0 0 / 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    /* ---------- Header ---------- */
+    .header {
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow);
+    }
+    .header-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .logo {
+      font-weight: 800;
+      font-size: 1.35rem;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .logo span { color: var(--text); font-weight: 600; }
+    .nav-links a {
+      color: var(--text-muted);
+      text-decoration: none;
+      margin-left: 1.5rem;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+    .nav-links a:hover { color: var(--primary); }
+
+    /* ---------- Hero / Landing ---------- */
+    .hero {
+      background: linear-gradient(135deg, #0f766e 0%, #0d9488 50%, #14b8a6 100%);
+      color: white;
+      padding: 4rem 1.5rem 5rem;
+      text-align: center;
+    }
+    .hero h1 {
+      font-size: clamp(1.9rem, 5vw, 2.8rem);
+      font-weight: 800;
+      line-height: 1.2;
+      margin-bottom: 1rem;
+      max-width: 800px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .hero p {
+      font-size: 1.15rem;
+      opacity: 0.95;
+      max-width: 620px;
+      margin: 0 auto 2rem;
+    }
+    .hero-cta {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      font-size: 1.1rem;
+      padding: 0.95rem 2rem;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+    }
+    .hero-cta:hover {
+      background: var(--accent-hover);
+      transform: translateY(-2px);
+    }
+    .trust-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 1.5rem;
+      margin-top: 2.5rem;
+      font-size: 0.9rem;
+      opacity: 0.9;
+    }
+    .trust-item { display: flex; align-items: center; gap: 0.4rem; }
+
+    /* ---------- Main Container ---------- */
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2rem 1.25rem 4rem;
+    }
+
+    /* ---------- Step Card ---------- */
+    .step-card {
+      background: var(--card);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-lg);
+      padding: 2rem;
+      margin-top: -3rem;
+      position: relative;
+      z-index: 10;
+    }
+    .step-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .step-header h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.35rem;
+    }
+    .step-header p { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Progress bar */
+    .progress {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      position: relative;
+    }
+    .progress::before {
+      content: '';
+      position: absolute;
+      top: 14px;
+      left: 10%;
+      right: 10%;
+      height: 3px;
+      background: var(--border);
+      z-index: 0;
+    }
+    .progress-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+      z-index: 1;
+      flex: 1;
+    }
+    .progress-dot {
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      background: var(--border);
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+    }
+    .progress-step.active .progress-dot,
+    .progress-step.done .progress-dot {
+      background: var(--primary);
+      color: white;
+    }
+    .progress-step.done .progress-dot { background: var(--success); }
+    .progress-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .progress-step.active .progress-label { color: var(--primary); font-weight: 600; }
+
+    /* Form elements */
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 0.4rem;
+    }
+    input[type="text"],
+    input[type="email"] {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+    input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.9rem 1.75rem;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1rem;
+      border: none;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: inherit;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+      width: 100%;
+    }
+    .btn-primary:hover { background: var(--primary-dark); }
+    .btn-primary:disabled {
+      background: #94a3b8;
+      cursor: not-allowed;
+    }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: var(--text);
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-accent {
+      background: var(--accent);
+      color: white;
+      width: 100%;
+    }
+    .btn-accent:hover { background: var(--accent-hover); }
+
+    /* Measurement loading */
+    .loading-box {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .spinner {
+      width: 56px;
+      height: 56px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+      margin: 0 auto 1.5rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-status {
+      font-weight: 600;
+      color: var(--primary);
+      margin-bottom: 0.5rem;
+    }
+    .loading-detail {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Results preview */
+    .result-summary {
+      background: #f0fdfa;
+      border: 1px solid #99f6e4;
+      border-radius: 10px;
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .result-summary h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.75rem;
+      color: var(--primary-dark);
+    }
+    .section-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 0.45rem 0;
+      border-bottom: 1px dashed #ccfbf1;
+      font-size: 0.95rem;
+    }
+    .section-row:last-child { border-bottom: none; font-weight: 700; }
+    .section-label { color: var(--text); }
+    .section-value { color: var(--primary-dark); font-weight: 600; }
+
+    /* Price box */
+    .price-box {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 1.25rem;
+      text-align: center;
+      margin: 1.5rem 0;
+    }
+    .price-box .amount {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .price-box .note { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* Success */
+    .success-box {
+      text-align: center;
+      padding: 2rem 1rem;
+    }
+    .success-icon {
+      width: 72px;
+      height: 72px;
+      background: #d1fae5;
+      color: var(--success);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin: 0 auto 1.25rem;
+    }
+
+    /* Features section (below the form) */
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.25rem;
+      margin-top: 3rem;
+    }
+    .feature-card {
+      background: white;
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      text-align: center;
+    }
+    .feature-icon {
+      font-size: 1.8rem;
+      margin-bottom: 0.75rem;
+    }
+    .feature-card h3 {
+      font-size: 1.05rem;
+      margin-bottom: 0.4rem;
+    }
+    .feature-card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    /* Footer */
+    footer {
+      background: #0f172a;
+      color: #94a3b8;
+      text-align: center;
+      padding: 2rem 1rem;
+      font-size: 0.9rem;
+      margin-top: 3rem;
+    }
+    footer a { color: #14b8a6; text-decoration: none; }
+
+    /* Utility */
+    .hidden { display: none !important; }
+    .mt-1 { margin-top: 1rem; }
+    .mt-2 { margin-top: 1.5rem; }
+    .text-center { text-align: center; }
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    /* Mobile tweaks */
+    @media (max-width: 600px) {
+      .step-card { padding: 1.5rem 1.15rem; }
+      .progress-label { font-size: 0.65rem; }
+      .hero { padding: 3rem 1rem 4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===================== HEADER ===================== -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="#" class="logo" onclick="resetToStart(); return false;">
+        REWY <span>RoofScan</span>
+      </a>
+      <nav class="nav-links">
+        <a href="#how">How it works</a>
+        <a href="#report">What's in the report</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- ===================== HERO ===================== -->
+  <section class="hero" id="hero">
+    <h1>Know Your Exact Roof Size in Minutes</h1>
+    <p>
+      Enter any address → AI measures every section (including detached garage & storage) →
+      Pay once → Receive a professional PDF report by email
+    </p>
+    <button class="hero-cta" onclick="startFlow()">
+      Start Free Address Lookup →
+    </button>
+    <div class="trust-row">
+      <div class="trust-item">✓ Total area per section</div>
+      <div class="trust-item">✓ Detached garage & storage included</div>
+      <div class="trust-item">✓ Professional PDF delivered instantly</div>
+    </div>
+  </section>
+
+  <!-- ===================== MAIN APP CONTAINER ===================== -->
+  <div class="container">
+    <div class="step-card" id="app">
+
+      <!-- Progress indicator -->
+      <div class="progress" id="progressBar">
+        <div class="progress-step active" data-step="1">
+          <div class="progress-dot">1</div>
+          <span class="progress-label">Address</span>
+        </div>
+        <div class="progress-step" data-step="2">
+          <div class="progress-dot">2</div>
+          <span class="progress-label">Measure</span>
+        </div>
+        <div class="progress-step" data-step="3">
+          <div class="progress-dot">3</div>
+          <span class="progress-label">Email & Pay</span>
+        </div>
+        <div class="progress-step" data-step="4">
+          <div class="progress-dot">4</div>
+          <span class="progress-label">Report</span>
+        </div>
+      </div>
+
+      <!-- ========== STEP 1: ENTER ADDRESS ========== -->
+      <div id="step1" class="step-panel">
+        <div class="step-header">
+          <h2>Enter the Property Address</h2>
+          <p>We use high-resolution aerial imagery + AI to measure the roof</p>
+        </div>
+
+        <label for="addressInput">Full street address</label>
+        <input
+          type="text"
+          id="addressInput"
+          placeholder="e.g. 123 Main Street, Austin, TX 78701"
+          autocomplete="street-address"
+        />
+
+        <div class="mt-2">
+          <button class="btn btn-primary" id="btnMeasure" onclick="startMeasurement()">
+            Measure This Property →
+          </button>
+        </div>
+
+        <p class="text-center mt-1" style="font-size:0.85rem;color:var(--text-muted);">
+          Works for houses, townhomes, and most commercial buildings in the US & Canada
+        </p>
+      </div>
+
+      <!-- ========== STEP 2: MEASUREMENT (HEAVILY COMMENTED) ========== -->
+      <!--
+        ================================================================
+        MEASUREMENT SECTION – REVIEW THIS CODE CAREFULLY
+        ================================================================
+        This is the core "do the measurement" step.
+
+        CURRENT BEHAVIOR (DEMO):
+        - Shows a realistic loading animation with status messages
+        - After ~4–6 seconds generates FAKE but realistic roof data
+        - Data is stored in window.reportData for later PDF generation
+
+        REAL PRODUCTION IMPLEMENTATION (what you should replace):
+        1. Call your backend API with the address
+        2. Backend should:
+           a. Geocode the address (Google Maps / Mapbox / OpenCage)
+           b. Fetch high-res aerial / satellite imagery
+              (Nearmap, EagleView, Google Maps Static, Mapbox, etc.)
+           c. Run AI / computer-vision model to detect roof planes
+              (or send to a human-reviewed service like AerialReports)
+           d. Detect detached structures (garage, storage, shed)
+           e. Calculate area of each plane/section in sq ft
+           f. Return structured JSON
+        3. Frontend receives the JSON and displays the preview
+
+        The function runMeasurement() is the single place you need to
+        replace the mock logic with a real fetch() call.
+        ================================================================
+      -->
+      <div id="step2" class="step-panel hidden">
+        <div class="step-header">
+          <h2>Measuring Your Roof…</h2>
+          <p>AI is analyzing aerial imagery for every section</p>
+        </div>
+
+        <div class="loading-box" id="loadingBox">
+          <div class="spinner"></div>
+          <div class="loading-status" id="loadingStatus">Initializing scan…</div>
+          <div class="loading-detail" id="loadingDetail">Locating property on high-resolution imagery</div>
+        </div>
+
+        <!-- Results appear here after measurement finishes -->
+        <div id="resultsBox" class="hidden">
+          <div class="result-summary" id="resultSummary">
+            <!-- Filled by JavaScript -->
+          </div>
+
+          <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1.25rem;">
+            The numbers above are a preview. The full professional PDF includes
+            diagrams, section labels, and detailed breakdown for every plane.
+          </p>
+
+          <button class="btn btn-primary" onclick="goToStep(3)">
+            Continue to Email & Payment →
+          </button>
+          <button class="btn btn-secondary mt-1" style="width:100%;" onclick="goToStep(1)">
+            ← Change Address
+          </button>
+        </div>
+      </div>
+
+      <!-- ========== STEP 3: EMAIL + PAY ========== -->
+      <div id="step3" class="step-panel hidden">
+        <div class="step-header">
+          <h2>Get Your Full PDF Report</h2>
+          <p>Enter your email and complete payment. Report arrives instantly.</p>
+        </div>
+
+        <div class="price-box">
+          <div class="amount">$29</div>
+          <div class="note">One-time payment • Instant email delivery • No subscription</div>
+        </div>
+
+        <label for="emailInput">Email address (where we send the PDF)</label>
+        <input type="email" id="emailInput" placeholder="you@company.com" />
+
+        <label for="nameInput" class="mt-1">Your name / Company (optional)</label>
+        <input type="text" id="nameInput" placeholder="John Smith or ABC Roofing" />
+
+        <div class="mt-2">
+          <button class="btn btn-accent" id="btnPay" onclick="processPayment()">
+            Pay $29 & Send My PDF Report →
+          </button>
+        </div>
+
+        <p class="text-center mt-1" style="font-size:0.8rem;color:var(--text-muted);">
+          Secure payment powered by Stripe (demo mode – no real charge).
+          By continuing you agree to our Terms & Privacy Policy.
+        </p>
+      </div>
+
+      <!-- ========== STEP 4: SUCCESS + DOWNLOAD ========== -->
+      <div id="step4" class="step-panel hidden">
+        <div class="success-box">
+          <div class="success-icon">✓</div>
+          <h2 style="margin-bottom:0.5rem;">Report Ready!</h2>
+          <p style="color:var(--text-muted);margin-bottom:1.5rem;">
+            Your REWY Roof Measurement Report has been generated.<br>
+            A copy was also “emailed” to <strong id="sentEmail"></strong>
+          </p>
+
+          <button class="btn btn-primary" onclick="generateAndDownloadPDF()">
+            Download PDF Report Now
+          </button>
+
+          <button class="btn btn-secondary mt-1" style="width:100%;" onclick="resetToStart()">
+            Measure Another Property
+          </button>
+        </div>
+      </div>
+
+    </div><!-- end .step-card -->
+
+    <!-- Features / Trust section -->
+    <div class="features" id="how">
+      <div class="feature-card">
+        <div class="feature-icon">📍</div>
+        <h3>1. Enter Address</h3>
+        <p>Type any US or Canadian property address. We locate it on aerial imagery.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🤖</div>
+        <h3>2. AI Measures</h3>
+        <p>Every roof section is detected, including detached garage and storage buildings.</p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📄</div>
+        <h3>3. Get PDF Report</h3>
+        <p>Total area per section + clear diagrams delivered to your email in minutes.</p>
+      </div>
+    </div>
+
+    <!-- What’s in the report -->
+    <div style="margin-top:3rem;background:white;border-radius:var(--radius);padding:2rem;box-shadow:var(--shadow);" id="report">
+      <h2 style="text-align:center;margin-bottom:1.25rem;">What’s Inside the PDF Report</h2>
+      <ul style="list-style:none;max-width:520px;margin:0 auto;">
+        <li style="padding:0.6rem 0;border-bottom:1px solid var(--border);">✓ Total roof area for each section (main house planes)</li>
+        <li style="padding:0.6rem 0;border-bottom:1px solid var(--border);">✓ Separate measurement if detached garage has a roof on top</li>
+        <li style="padding:0.6rem 0;border-bottom:1px solid var(--border);">✓ Separate measurement for storage / shed buildings</li>
+        <li style="padding:0.6rem 0;border-bottom:1px solid var(--border);">✓ Clear space (area) shown for every section</li>
+        <li style="padding:0.6rem 0;border-bottom:1px solid var(--border);">✓ Simple labeled diagram of the property</li>
+        <li style="padding:0.6rem 0;">✓ Professional cover page with address & report ID</li>
+      </ul>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2026 REWY.net – IT Consultancy & AI Solutions</p>
+    <p style="margin-top:0.4rem;">
+      <a href="#">Privacy</a> · <a href="#">Terms</a> · 
+      Powered by REWY AI Roof Measurement Engine
+    </p>
+  </footer>
+
+  <!-- ===================== JAVASCRIPT ===================== -->
+  <script>
+    /* ============================================================
+       GLOBAL STATE
+       ============================================================ */
+    let currentStep = 1;
+    let reportData = null;   // will hold the measurement results
+    let userEmail = '';
+    let userName = '';
+
+    /* ============================================================
+       UI HELPERS
+       ============================================================ */
+    function goToStep(step) {
+      // Hide all panels
+      document.querySelectorAll('.step-panel').forEach(el => el.classList.add('hidden'));
+      // Show the requested panel
+      document.getElementById('step' + step).classList.remove('hidden');
+
+      // Update progress dots
+      document.querySelectorAll('.progress-step').forEach(el => {
+        const s = parseInt(el.dataset.step);
+        el.classList.remove('active', 'done');
+        if (s < step) el.classList.add('done');
+        if (s === step) el.classList.add('active');
+      });
+
+      currentStep = step;
+      window.scrollTo({ top: document.getElementById('app').offsetTop - 80, behavior: 'smooth' });
+    }
+
+    function startFlow() {
+      document.getElementById('hero').style.display = 'none';
+      goToStep(1);
+    }
+
+    function resetToStart() {
+      document.getElementById('hero').style.display = 'block';
+      document.getElementById('addressInput').value = '';
+      document.getElementById('emailInput').value = '';
+      document.getElementById('nameInput').value = '';
+      document.getElementById('loadingBox').classList.remove('hidden');
+      document.getElementById('resultsBox').classList.add('hidden');
+      reportData = null;
+      goToStep(1);
+      // Show hero again by scrolling to top
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    /* ============================================================
+       STEP 1 → STEP 2 : START MEASUREMENT
+       ============================================================ */
+    function startMeasurement() {
+      const address = document.getElementById('addressInput').value.trim();
+      if (!address || address.length < 8) {
+        alert('Please enter a valid full address (street, city, state/zip).');
+        return;
+      }
+
+      // Move to measurement step and start the process
+      goToStep(2);
+      runMeasurement(address);
+    }
+
+    /* ============================================================
+       ★★★  CORE MEASUREMENT FUNCTION – REVIEW THIS SECTION  ★★★
+       ============================================================
+       
+       This is the heart of the product.
+       
+       DEMO VERSION (what you see now):
+       - Shows progressive status messages
+       - After a few seconds creates realistic fake data
+       - Stores result in global `reportData`
+       
+       PRODUCTION VERSION (what you should implement):
+       
+       async function runMeasurement(address) {
+         try {
+           // 1. Show loading UI (already done)
+           
+           // 2. Call your backend
+           const response = await fetch('https://your-api.rewy.net/measure', {
+             method: 'POST',
+             headers: { 'Content-Type': 'application/json' },
+             body: JSON.stringify({ address: address })
+           });
+           
+           if (!response.ok) throw new Error('Measurement failed');
+           
+           const data = await response.json();
+           // Expected shape of data:
+           // {
+           //   address: "...",
+           //   totalSqFt: 2450,
+           //   totalSquares: 24.5,
+           //   sections: [
+           //     { name: "Main Roof – Front Slope", sqFt: 980, type: "main" },
+           //     { name: "Main Roof – Rear Slope", sqFt: 920, type: "main" },
+           //     { name: "Detached Garage", sqFt: 350, type: "garage" },
+           //     { name: "Storage Building", sqFt: 200, type: "storage" }
+           //   ],
+           //   hasDetachedGarage: true,
+           //   hasStorage: true,
+           //   diagramUrl: "https://..." // optional
+           // }
+           
+           reportData = data;
+           showResults(data);
+           
+         } catch (err) {
+           console.error(err);
+           document.getElementById('loadingStatus').textContent = 'Measurement failed';
+           document.getElementById('loadingDetail').textContent = err.message;
+         }
+       }
+       
+       Backend responsibilities (you will build later):
+       - Geocode address → lat/lng
+       - Pull aerial imagery (Nearmap / EagleView / Mapbox / Google)
+       - Run roof-plane detection (AI model or human technician)
+       - Detect and measure detached structures separately
+       - Return structured JSON with every section’s area
+       
+       ============================================================ */
+    function runMeasurement(address) {
+      // Reset UI
+      document.getElementById('loadingBox').classList.remove('hidden');
+      document.getElementById('resultsBox').classList.add('hidden');
+
+      const statusEl = document.getElementById('loadingStatus');
+      const detailEl = document.getElementById('loadingDetail');
+
+      // Progressive status messages (makes it feel real)
+      const stages = [
+        { status: 'Locating property…', detail: 'Matching address to aerial imagery coordinates', delay: 900 },
+        { status: 'Scanning main roof…', detail: 'Detecting roof planes and calculating areas', delay: 1400 },
+        { status: 'Checking detached structures…', detail: 'Looking for garage and storage roofs', delay: 1200 },
+        { status: 'Calculating section areas…', detail: 'Measuring each plane in square feet', delay: 1100 },
+        { status: 'Finalizing report data…', detail: 'Preparing section-by-section breakdown', delay: 800 }
+      ];
+
+      let i = 0;
+      function nextStage() {
+        if (i < stages.length) {
+          statusEl.textContent = stages[i].status;
+          detailEl.textContent = stages[i].detail;
+          setTimeout(nextStage, stages[i].delay);
+          i++;
+        } else {
+          // ---- MOCK DATA GENERATION (REPLACE THIS BLOCK) ----
+          // In production delete everything below and use the real API response
+          const mockSections = generateMockSections(address);
+          reportData = {
+            address: address,
+            reportId: 'REWY-' + Date.now().toString().slice(-8),
+            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+            totalSqFt: mockSections.reduce((sum, s) => sum + s.sqFt, 0),
+            sections: mockSections
+          };
+          reportData.totalSquares = (reportData.totalSqFt / 100).toFixed(1);
+          // ----------------------------------------------------
+
+          showResults(reportData);
+        }
+      }
+      nextStage();
+    }
+
+    /* Helper: creates realistic-looking fake sections for the demo */
+    function generateMockSections(address) {
+      // Simple hash so the same address always gives similar numbers
+      let hash = 0;
+      for (let i = 0; i < address.length; i++) {
+        hash = ((hash << 5) - hash) + address.charCodeAt(i);
+        hash |= 0;
+      }
+      const base = 1800 + Math.abs(hash % 1200); // 1800–3000 sq ft range
+
+      const sections = [
+        { name: 'Main Roof – Front / South Slope', sqFt: Math.round(base * 0.38), type: 'main' },
+        { name: 'Main Roof – Rear / North Slope', sqFt: Math.round(base * 0.36), type: 'main' }
+      ];
+
+      // 70% chance of a garage
+      if (Math.abs(hash) % 10 > 2) {
+        sections.push({
+          name: 'Detached Garage Roof',
+          sqFt: 280 + Math.abs(hash % 180),
+          type: 'garage'
+        });
+      }
+      // 40% chance of a storage building
+      if (Math.abs(hash) % 10 > 5) {
+        sections.push({
+          name: 'Storage / Shed Roof',
+          sqFt: 120 + Math.abs(hash % 100),
+          type: 'storage'
+        });
+      }
+
+      // Sometimes add a small side section
+      if (Math.abs(hash) % 7 === 0) {
+        sections.push({
+          name: 'Main Roof – Side / East Wing',
+          sqFt: 180 + Math.abs(hash % 120),
+          type: 'main'
+        });
+      }
+
+      return sections;
+    }
+
+    /* Display the measurement results */
+    function showResults(data) {
+      document.getElementById('loadingBox').classList.add('hidden');
+      document.getElementById('resultsBox').classList.remove('hidden');
+
+      let html = `<h3>Measurement Preview – ${data.address}</h3>`;
+      data.sections.forEach(sec => {
+        html += `
+          <div class="section-row">
+            <span class="section-label">${sec.name}</span>
+            <span class="section-value">${sec.sqFt.toLocaleString()} sq ft</span>
+          </div>`;
+      });
+      html += `
+        <div class="section-row">
+          <span class="section-label">Total Roof Area</span>
+          <span class="section-value">${data.totalSqFt.toLocaleString()} sq ft (${data.totalSquares} squares)</span>
+        </div>`;
+
+      document.getElementById('resultSummary').innerHTML = html;
+    }
+
+    /* ============================================================
+       STEP 3 : PAYMENT (DEMO)
+       ============================================================ */
+    function processPayment() {
+      const email = document.getElementById('emailInput').value.trim();
+      const name = document.getElementById('nameInput').value.trim();
+
+      if (!email || !email.includes('@')) {
+        alert('Please enter a valid email address.');
+        return;
+      }
+
+      userEmail = email;
+      userName = name || 'Customer';
+
+      // In production: call Stripe Checkout or your payment endpoint here
+      // For demo we just simulate success after a short delay
+      const btn = document.getElementById('btnPay');
+      btn.disabled = true;
+      btn.textContent = 'Processing payment…';
+
+      setTimeout(() => {
+        document.getElementById('sentEmail').textContent = userEmail;
+        goToStep(4);
+        btn.disabled = false;
+        btn.textContent = 'Pay $29 & Send My PDF Report →';
+      }, 1500);
+    }
+
+    /* ============================================================
+       STEP 4 : GENERATE REAL PDF WITH jsPDF
+       ============================================================ */
+    function generateAndDownloadPDF() {
+      if (!reportData) {
+        alert('No measurement data available.');
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // --- Cover / Header ---
+      doc.setFillColor(15, 118, 110);
+      doc.rect(0, 0, 210, 40, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(22);
+      doc.setFont('helvetica', 'bold');
+      doc.text('REWY RoofScan Report', 20, 22);
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.text('AI-Assisted Aerial Roof Measurement', 20, 32);
+
+      // Reset text color
+      doc.setTextColor(15, 23, 42);
+
+      // Property info
+      doc.setFontSize(12);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Property Address', 20, 55);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(reportData.address, 20, 62);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Report ID', 20, 75);
+      doc.setFont('helvetica', 'normal');
+      doc.text(reportData.reportId, 20, 82);
+
+      doc.setFont('helvetica', 'bold');
+      doc.text('Date', 110, 75);
+      doc.setFont('helvetica', 'normal');
+      doc.text(reportData.date, 110, 82);
+
+      // Section breakdown
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.text('Roof Area by Section', 20, 100);
+
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+
+      let y = 112;
+      reportData.sections.forEach((sec, idx) => {
+        // Alternating background for readability
+        if (idx % 2 === 0) {
+          doc.setFillColor(240, 253, 250);
+          doc.rect(18, y - 5, 174, 10, 'F');
+        }
+        doc.text(sec.name, 22, y);
+        doc.text(sec.sqFt.toLocaleString() + ' sq ft', 160, y, { align: 'right' });
+        y += 11;
+      });
+
+      // Total line
+      y += 4;
+      doc.setDrawColor(15, 118, 110);
+      doc.setLineWidth(0.5);
+      doc.line(20, y, 190, y);
+      y += 8;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('TOTAL ROOF AREA', 22, y);
+      doc.text(
+        reportData.totalSqFt.toLocaleString() + ' sq ft  (' + reportData.totalSquares + ' squares)',
+        190, y, { align: 'right' }
+      );
+
+      // Notes
+      y += 20;
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(100, 116, 139);
+      doc.text('Notes:', 20, y);
+      y += 6;
+      doc.text('• Areas are measured from high-resolution aerial imagery using AI assistance.', 20, y);
+      y += 5;
+      doc.text('• Detached garage and storage buildings are listed separately when a roof is detected.', 20, y);
+      y += 5;
+      doc.text('• This report is for planning, quoting and material estimation purposes.', 20, y);
+      y += 5;
+      doc.text('• For final construction or insurance claims, on-site verification is recommended.', 20, y);
+
+      // Footer
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 275, 210, 22, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(9);
+      doc.text('Generated by REWY.net – IT Consultancy & AI Solutions', 20, 285);
+      doc.text('www.rewy.net', 190, 285, { align: 'right' });
+
+      // Save the file
+      const fileName = 'REWY-RoofScan-' + reportData.reportId + '.pdf';
+      doc.save(fileName);
+    }
+
+    // Allow Enter key on address field
+    document.getElementById('addressInput').addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') startMeasurement();
+    });
+  </script>
+</body>
+</html>
